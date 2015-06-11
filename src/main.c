@@ -14,6 +14,9 @@
 #include "defines.c"
 #include "control.c"
 
+int frontDist(int slr, int sf);
+int attSide(int sensor);
+
 int main(void)
 {
 
@@ -44,102 +47,37 @@ int main(void)
 		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
 		//_delay_ms(2500);
 
-		int speed = 300;
 
-			// if not on collision course AND NOT attachedToWall
-			if (slr <= 350 && attachedToWall == 0) {
-				moveForward(speed);
-
-				// TODO: avoid collision based on side sensors
-			}
-
-			// when first in front-proximity of wall
-			if (slr > 350 && attachedToWall == 0){
-				attachedToWall = 1;
-				//
-				// if closer to left wall, attach to it
-				//
-				if (sl > sr){
-					attachmentSide = 'L';
-				}
-				if (sl <= sr){
-					attachmentSide = 'R';
-				}
-			}
-
-				if (attachmentSide == 'L'){
-					// LEFT LEFT
-					// if on collision course
-					if (slr > 350){
-						// set speed to 0
-						moveForward(0);
-						// get sensor and turn away from it
-						while ( getIR(5) > 150 ){
-							turnRightHard(500);
-						}
-					}
-
-					// if not on collision course AND attachedToWall
-					if (slr <= 350 && attachedToWall == 1) {
-						moveForward(speed);
-
-						// if in proximity of wall
-						if (slw > 50 && sl > 20){
-							// if too close to wall
-							if (sl > 75 ){
-								turnRightSoft(speed, 200);
-							}
-							// if too far from wall
-							if (sl < 30 ){
-								turnLeftSoft(speed, 200);
-							}
-							// if
-						}
-						// if NOT in proximity of wall
-						if (slw <= 50){
-							while (getIR(5) < 150 && getIR(1) < 80){
-								turnLeftSoft(speed, 180);
-							}
-						}
-					}
-				}
-
-				if (attachmentSide == 'R'){
-					// RIGHT RIGHT
-					// if on collision course
-					if (slr > 350){
-						// set speed to 0
-						moveForward(0);
-						// get sensor and turn away from it
-						while ( getIR(5) > 150 ){
-							turnLeftHard(500);
-						}
-					}
-
-					// if not on collision course AND attachedToWall
-					if (slr <= 350 && attachedToWall == 1) {
-						moveForward(speed);
-
-						// if in proximity of wall
-						if (srw > 50 && sr > 20){
-							// if too close to wall
-							if (sr > 75 ){
-								turnLeftSoft(speed, 200);
-							}
-							// if too far from wall
-							if (sr < 30 ){
-								turnRightSoft(speed, 200);
-							}
-							// if
-						}
-						// if NOT in proximity of wall
-						if (srw <= 50){
-							while (getIR(5) < 150 && getIR(6) < 80){
-								turnRightSoft(speed, 180);
-							}
-						}
-					}
-				}
+		// TODO: we need floating points for this, and to calibrate each sensor
+		//setLeftSpeed(680 - frontDist(slr, sf) - /* 4*sr + 3*sl */ + attSide(slw) /*- attSide(srw)*/ );
+		//setRightSpeed(680 - frontDist(slr, sf) - /* 4*sl + 3*sr */ + attSide(srw) /*- attSide(slw)*/ );
+		setLeftSpeed(300 - sf - sr + sl + attSide(slw) - attSide(srw));
+		setRightSpeed(300 - sf - sl + sr + attSide(srw) - attSide(slw));
 
 		}
 	}
+
+int frontDist(int slr, int sf){
+	if (slr > 600){
+		return 800;
+	}
+	else {
+		return slr;
+	}
+
+};
+
+int attSide(int sensor){
+	// too close, move away
+	if (sensor > 200){
+		return sensor;
+	}
+	// beginning to slip away, move closer
+	else if (sensor < 120 && sensor > 30){
+		return (-3)*sensor;
+	}
+	// too far away, no attraction
+	else {
+		return 0;
+	}
+}
