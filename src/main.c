@@ -19,7 +19,12 @@ int main(void)
 
 	init();
 
+	int deltaSl = 0;
+	int deltaSr = 0;
+	int count = 0;
+
 	while(1) {
+		count++;
 
 		int ir[4];
 		ir[0] = getIR(5); //Long range front
@@ -32,6 +37,9 @@ int main(void)
 		int sr = ir[3];
 		int sf = ir[1];
 		int slr = ir[0];
+
+
+
 
 		//int speed = calcSpeed(ir, 500);
 
@@ -47,31 +55,67 @@ int main(void)
 		int speed = 300;
 		moveForward(speed);
 
-		if (sf > 10){
+		if (sf > 200) {
+			int start = count;
+			int right = (sl > sr) ? 1 : 0;
+			while (count < start+300) {
+				moveBackward(speed/2);
+				count++;
+			}
+			start = count;
+			while (count < start+50) {
+				if (right) {
+					turnRightHard(300);
+				} else {
+					turnLeftHard(300);
+				}
+				count++;
+			}
+		}
+
+		if ((deltaSl - sl) > 50) {
+			int start = count;
+			while (count < start+60) {
+				if (count > start+30) {
+					turnLeftSoft(speed, 100);
+				}
+				count ++;
+				_delay_ms(500);
+			}
+			moveForward(speed);
+		}
+
+		if ((deltaSr - sr) > 50) {
+			int start = count;
+			while (count < start+60) {
+				if (count > start+30) {
+					turnRightSoft(speed, 100);
+				}
+				count ++;
+				_delay_ms(500);
+			}
+			moveForward(speed);
+		}
+
+		if (sf > 30){
 			if (sl > sr){
-				turnRightHard(500);
+				turnRightHard(600);
 			}
 			else{
-				turnLeftHard(500);
+				turnLeftHard(600);
 			}
 		}
 
-		if (slr > 100){
-			if (sl > sr && max(sl,sr)>10) {
-				turnRightSoft(speed, 100);
-			} else if (sl <= sr && max(sl,sr)>10) {
-				turnLeftSoft(speed, 100);
+		if (slr > 200 && max(sl,sr)>10){
+			if (sl > sr) {
+				turnRightSoft(speed, 150);
+			} else {
+				turnLeftSoft(speed, 150);
 			}
 		}
 
-
-		// int k = 70;
-		// int sl = ((ir[2]+1)*k)/430;
-		// int sr = ((ir[3]+1)*k)/350;
-
-		// printf("%i : %i \n", ir[2], ir[3]);
-		// printf("%i : %i \n", sl, sr);
-		//printf("\n");
+		deltaSl = sl;
+		deltaSr = sr;
 
 		_delay_ms(500);
 	}
