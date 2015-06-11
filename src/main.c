@@ -19,6 +19,8 @@ int main(void)
 
 	init();
 
+	int attachedToWall = 0;
+
 	while(1) {
 
 		int ir[5];
@@ -53,21 +55,23 @@ int main(void)
 
 		// if on collision course
 		if (slr > 350){
+
+			attachedToWall = 1;
 			// set speed to 0
 			moveForward(0);
 			while ( getIR(5) > 150 ){
-				turnRightHard(350);
+				turnRightHard(500);
 			}
 		}
-		// if not on collision course
 
-		else {
+		// if not on collision course AND attachedToWall
+		if (slr <= 350 && attachedToWall == 1) {
 			moveForward(speed);
 
 			// if in proximity of wall
-			if (slw > 50){
+			if (slw > 50 && sl > 20){
 				// if too close to wall
-				if (sl > 75){
+				if (sl > 75 ){
 					turnRightSoft(speed, 200);
 				}
 				// if too far from wall
@@ -77,25 +81,17 @@ int main(void)
 				// if
 			}
 			// if NOT in proximity of wall
-			else{
+			if (slw <= 50){
 				while (getIR(5) < 150 && getIR(1) < 80){
 					turnLeftSoft(speed, 180);
 				}
 			}
-
-
-/*
-			// if wall disappeared
-			if ( slw < 50){
-					while (getIR(1) < 80){
-						turnLeftSoft(speed, 180);
-					}
-			}
-*/
-
 		}
 
-
+		// if not on collision course AND NOT attachedToWall
+		if (slr <= 350 && attachedToWall == 0) {
+			moveForward(speed);
+		}
 
 
 
