@@ -30,24 +30,48 @@ int main(void)
 		// int speed = calcSpeed(ir, 600);
 		int sl = ir[2];
 		int sr = ir[3];
+		int sf = ir[1];
+		int slr = ir[0];
 
-		int speed = calcSpeed(ir, 500);
+		//int speed = calcSpeed(ir, 500);
 
-		// if (sl > sr && max(sl,sr)>10) {
-		// 	turnRight(speed);
-		// } else if (sl <= sr && max(sl,sr)>10) {
- 	// 		turnLeft(speed);
-		// }
-		
-		turnRight(80, 100);	
+		/*
+		if (sl > sr && max(sl,sr)>10) {
+		 	turnRightSoft(speed);
+		} else if (sl <= sr && max(sl,sr)>10) {
+ 	 		turnLeftSoft(speed);
+		}
+		*/
+
+		// Collision avoidance
+		int speed = 300;
+		moveForward(speed);
+
+		if (sf > 10){
+			if (sl > sr){
+				turnRightHard(500);
+			}
+			else{
+				turnLeftHard(500);
+			}
+		}
+
+		if (slr > 100){
+			if (sl > sr && max(sl,sr)>10) {
+				turnRightSoft(speed, 100);
+			} else if (sl <= sr && max(sl,sr)>10) {
+				turnLeftSoft(speed, 100);
+			}
+		}
+
 
 		// int k = 70;
-		// int sl = ((ir[2]+1)*k)/430;  
+		// int sl = ((ir[2]+1)*k)/430;
 		// int sr = ((ir[3]+1)*k)/350;
 
 		// printf("%i : %i \n", ir[2], ir[3]);
 		// printf("%i : %i \n", sl, sr);
-		printf("\n");
+		//printf("\n");
 
 		_delay_ms(500);
 	}
