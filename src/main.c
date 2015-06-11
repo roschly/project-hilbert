@@ -20,15 +20,17 @@ int main(void)
 	init();
 
 	int attachedToWall = 0;
+	char attachmentSide = 'N'; // N for null
 
 	while(1) {
 
-		int ir[5];
+		int ir[6];
 		ir[0] = getIR(5); //Long range front
 		ir[1] = getIR(2); //Short range front
 		ir[2] = getIR(1); //Left
 		ir[3] = getIR(6); //Right
 		ir[4] = getIR(3); // left wall
+		ir[5] = getIR(4); // right wall
 
 		// int speed = calcSpeed(ir, 600);
 		int sl = ir[2];
@@ -36,110 +38,108 @@ int main(void)
 		int sf = ir[1];
 		int slr = ir[0];
 		int slw = ir[4];
+		int srw = ir[5];
 
-		//int speed = calcSpeed(ir, 500);
 
-		/*
-		if (sl > sr && max(sl,sr)>10) {
-		 	turnRightSoft(speed);
-		} else if (sl <= sr && max(sl,sr)>10) {
- 	 		turnLeftSoft(speed);
-		}
-		*/
-
-		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i \n", sl, sr, sf, slr, slw);
+		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
 		//_delay_ms(2500);
 
 		int speed = 300;
 
+			// if not on collision course AND NOT attachedToWall
+			if (slr <= 350 && attachedToWall == 0) {
+				moveForward(speed);
 
-		// if on collision course
-		if (slr > 350){
-
-			attachedToWall = 1;
-			// set speed to 0
-			moveForward(0);
-			while ( getIR(5) > 150 ){
-				turnRightHard(500);
+				// TODO: avoid collision based on side sensors
 			}
-		}
 
-		// if not on collision course AND attachedToWall
-		if (slr <= 350 && attachedToWall == 1) {
-			moveForward(speed);
-
-			// if in proximity of wall
-			if (slw > 50 && sl > 20){
-				// if too close to wall
-				if (sl > 75 ){
-					turnRightSoft(speed, 200);
+			// when first in front-proximity of wall
+			if (slr > 350 && attachedToWall == 0){
+				attachedToWall = 1;
+				//
+				// if closer to left wall, attach to it
+				//
+				if (sl > sr){
+					attachmentSide = 'L';
 				}
-				// if too far from wall
-				if (sl < 30 ){
-					turnLeftSoft(speed, 200);
-				}
-				// if
-			}
-			// if NOT in proximity of wall
-			if (slw <= 50){
-				while (getIR(5) < 150 && getIR(1) < 80){
-					turnLeftSoft(speed, 180);
+				if (sl <= sr){
+					attachmentSide = 'R';
 				}
 			}
+
+				if (attachmentSide == 'L'){
+					// LEFT LEFT
+					// if on collision course
+					if (slr > 350){
+						// set speed to 0
+						moveForward(0);
+						// get sensor and turn away from it
+						while ( getIR(5) > 150 ){
+							turnRightHard(500);
+						}
+					}
+
+					// if not on collision course AND attachedToWall
+					if (slr <= 350 && attachedToWall == 1) {
+						moveForward(speed);
+
+						// if in proximity of wall
+						if (slw > 50 && sl > 20){
+							// if too close to wall
+							if (sl > 75 ){
+								turnRightSoft(speed, 200);
+							}
+							// if too far from wall
+							if (sl < 30 ){
+								turnLeftSoft(speed, 200);
+							}
+							// if
+						}
+						// if NOT in proximity of wall
+						if (slw <= 50){
+							while (getIR(5) < 150 && getIR(1) < 80){
+								turnLeftSoft(speed, 180);
+							}
+						}
+					}
+				}
+
+				if (attachmentSide == 'R'){
+					// RIGHT RIGHT
+					// if on collision course
+					if (slr > 350){
+						// set speed to 0
+						moveForward(0);
+						// get sensor and turn away from it
+						while ( getIR(5) > 150 ){
+							turnLeftHard(500);
+						}
+					}
+
+					// if not on collision course AND attachedToWall
+					if (slr <= 350 && attachedToWall == 1) {
+						moveForward(speed);
+
+						// if in proximity of wall
+						if (srw > 50 && sr > 20){
+							// if too close to wall
+							if (sr > 75 ){
+								turnLeftSoft(speed, 200);
+							}
+							// if too far from wall
+							if (sr < 30 ){
+								turnRightSoft(speed, 200);
+							}
+							// if
+						}
+						// if NOT in proximity of wall
+						if (srw <= 50){
+							while (getIR(5) < 150 && getIR(6) < 80){
+								turnRightSoft(speed, 180);
+							}
+						}
+					}
+				}
+
 		}
-
-		// if not on collision course AND NOT attachedToWall
-		if (slr <= 350 && attachedToWall == 0) {
-			moveForward(speed);
-		}
-
-
-
-		// if slw < 20, turn left hard
-
-
-
-
-
-
-		/*
-		// Collision avoidance
-		int speed = 300;
-		moveForward(speed);
-
-
-
-		if (sf > 500){
-			moveBackward(300);
-		}
-
-		if (sf > 30){
-			if (sl > sr){
-				turnRightHard(600);
-			}
-			else{
-				turnLeftHard(600);
-			}
-		}
-
-		if (slr > 100){
-			if (sl > sr && max(sl,sr)>10) {
-				turnRightSoft(speed, 250);
-			} else {
-				turnLeftSoft(speed, 250);
-			}
-		}
-		*/
-
-		// int k = 70;
-		// int sl = ((ir[2]+1)*k)/430;
-		// int sr = ((ir[3]+1)*k)/350;
-
-		//printf("%i \n", sf);
-
-
-		//printf("\n");
-
-
 	}
-}
