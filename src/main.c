@@ -47,19 +47,23 @@ int main(void)
 		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
 		//_delay_ms(2500);
 
+		// long path
+		// slr < ca 60-100,
 
-		// TODO: we need floating points for this, and to calibrate each sensor
-		//setLeftSpeed(680 - frontDist(slr, sf) - /* 4*sr + 3*sl */ + attSide(slw) /*- attSide(srw)*/ );
-		//setRightSpeed(680 - frontDist(slr, sf) - /* 4*sl + 3*sr */ + attSide(srw) /*- attSide(slw)*/ );
-		setLeftSpeed(300 - sf - sr + sl + attSide(slw) - attSide(srw));
-		setRightSpeed(300 - sf - sl + sr + attSide(srw) - attSide(slw));
+		// slr deadzone is ca 640
+
+
+		//setLeftSpeed(620.0 - frontDist(slr, sf) - 2.5*sr + 3.5*sl + 1.0*slw  /* + attSide(slw) - attSide(srw)*/ );
+		//setRightSpeed(620.0 - frontDist(slr, sf) - 2.5*sl + 3.5*sr + 1.0*srw /* + attSide(srw) - attSide(slw)*/ );
+		//setLeftSpeed(300 - sf - sr + sl + attSide(slw) - attSide(srw));
+		//setRightSpeed(300 - sf - sl + sr + attSide(srw) - attSide(slw));
 
 		}
 	}
 
 int frontDist(int slr, int sf){
 	if (slr > 600){
-		return 800;
+		return 800.0;
 	}
 	else {
 		return slr;
@@ -74,7 +78,7 @@ int attSide(int sensor){
 	}
 	// beginning to slip away, move closer
 	else if (sensor < 120 && sensor > 30){
-		return (-3)*sensor;
+		return (-2)*sensor;
 	}
 	// too far away, no attraction
 	else {
