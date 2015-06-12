@@ -142,4 +142,83 @@ int main(void)
 				}
 
 		}
+
+		int speed = 600;
+		int closeProximity = 100;
+
+		// general protocol, priority list
+		// 1. avoid collision
+		// 2. followWall
+		// 3. searchForWall
+		// 4. drive straight ahead
+
+		// avoid collision
+		void avoidCollision() {
+			// if sensor front OR sensor left/right too high
+			// turn hard left/right
+
+			if (sf > closeProximity){
+				// get highest sensor left/right and turn opposite
+				if (sl > sr){
+					turnRightSoft();
+				}
+				if (sl <= sr){
+					turnLeftSoft();
+				}
+			}
+
+			if (sl > closeProximity){
+				turnRightHard();
+			}
+			if (sr > closeProximity){
+				turnLeftHard();
+			}
+		}
+
+		// follow wall
+		void followWall(){
+
+			int sensor = 0;
+			char direction = 'N';
+
+			// which side is the wall on
+			if ( slw > srw){
+				direction = 'L';
+				sensor = slw;
+			}
+			else {
+				direction = 'R';
+				sensor = srw;
+			};
+
+			// if too close to wall
+			// turn soft away
+			if (sensor > 200){
+				turnSoft(, speed, deg);
+			}
+
+			//if too far from wall, but not too far
+			// turn soft towards it
+			if (sensor < 100 && sensor > 30){
+				turnSoft();
+			}
+
+		}
+
+		// search for wall
+		void searchForWall(){
+
+		}
+
+		// sprint, maybe not?
+		void sprint(){
+			// if slr is very low, long distance ahead
+			//
+		}
+
+		// drive straight ahead
+		void driveStraightAhead(){
+			// drive straight
+			// let speed be dependent on slr
+		}
 	}

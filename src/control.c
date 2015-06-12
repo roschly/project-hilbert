@@ -86,6 +86,17 @@ void turnRightSoft(int speed, int deg) {
 	setLeftSpeed(speed + deg);
 }
 
+void turnSoft(char direction, int speed, int deg){
+	if (direction == 'L'){
+		setRightSpeed(speed + deg);
+		setLeftSpeed(speed - deg);
+	}
+	if (direction == 'R'){
+		setRightSpeed(speed - deg);
+		setLeftSpeed(speed + deg);
+	}
+}
+
 void turnLeftHard(int deg) {
 	setRightSpeed(deg);
 	setLeftSpeed(-deg);
