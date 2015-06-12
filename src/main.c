@@ -15,7 +15,8 @@
 #include "control.c"
 
 int frontDist(int slr, int sf);
-int attSide(int sensor);
+int sticky(int sensor);
+double scaleSensor(int sensor);
 
 int main(void)
 {
@@ -24,6 +25,7 @@ int main(void)
 
 	int attachedToWall = 0;
 	char attachmentSide = 'N'; // N for null
+
 
 	while(1) {
 
@@ -35,35 +37,49 @@ int main(void)
 		ir[4] = getIR(3); // left wall
 		ir[5] = getIR(4); // right wall
 
+
 		// int speed = calcSpeed(ir, 600);
-		int sl = ir[2];
-		int sr = ir[3];
-		int sf = ir[1];
-		int slr = ir[0];
-		int slw = ir[4];
-		int srw = ir[5];
+		int sl = getIR(6);
+		int sr = getIR(2);
+		int sf = getIR(4);
+		int slr = getIR(3);
+		int slw = getIR(1);
+		int srw = getIR(5);
 
 
 		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
 		//_delay_ms(2500);
 
+
 		// long path
 		// slr < ca 60-100,
 
-		// slr deadzone is ca 640
+		// srw 50-100 > slw
 
+		// slr deadzone is ca 640
+		// sf deadzone is ca 175
 
 		//setLeftSpeed(620.0 - frontDist(slr, sf) - 2.5*sr + 3.5*sl + 1.0*slw  /* + attSide(slw) - attSide(srw)*/ );
 		//setRightSpeed(620.0 - frontDist(slr, sf) - 2.5*sl + 3.5*sr + 1.0*srw /* + attSide(srw) - attSide(slw)*/ );
 		//setLeftSpeed(300 - sf - sr + sl + attSide(slw) - attSide(srw));
 		//setRightSpeed(300 - sf - sl + sr + attSide(srw) - attSide(slw));
 
+		//setLeftSpeed(680 - frontDist(slr, sf) - 1.5*sr + 1.5*sl + 0.5*slw);
+		//setRightSpeed(680 - frontDist(slr, sf) - 1.5*sl + 1.5*sr + 0.5*srw);
+
+		//setLeftSpeed(MAX_SPEED - frontDist(slr, sf) -3.5*scaleSensor(sr) + 2.0*scaleSensor(sl) -1.5*srw + sticky(slw) );
+		//setRightSpeed(MAX_SPEED - frontDist(slr, sf) -3.5*scaleSensor(sl) + 2.0*scaleSensor(sr) -1.5*slw + sticky(srw) );
+
+		setLeftSpeed(MAX_SPEED - frontDist(slr, sf) - 4.5*sr + 1.5*sl + sticky(slw) );
+		setRightSpeed(MAX_SPEED - frontDist(slr, sf) - 4.5*sl + 1.5*sr + sticky(srw) );
+
+
 		}
 	}
 
 int frontDist(int slr, int sf){
-	if (slr > 600){
-		return 800.0;
+	if (slr > 600 ){
+		return MAX_SPEED + 50;
 	}
 	else {
 		return slr;
@@ -71,17 +87,26 @@ int frontDist(int slr, int sf){
 
 };
 
-int attSide(int sensor){
+int sticky(int sensor){
 	// too close, move away
 	if (sensor > 200){
-		return sensor;
+		return 0.7*sensor;
 	}
 	// beginning to slip away, move closer
-	else if (sensor < 120 && sensor > 30){
-		return (-2)*sensor;
+	else if (sensor < 150 && sensor > 30){
+		return (-1.5)*sensor;
 	}
 	// too far away, no attraction
 	else {
 		return 0;
+	}
+}
+
+double scaleSensor(int sensor){
+	if (sensor > 250){
+		return 0.5*sensor;
+	}
+	else{
+		return sensor;
 	}
 }

@@ -16,7 +16,7 @@
 #define		ADC_PORT_5	5
 #define		ADC_PORT_6	6
 
-#define MAX_SPEED 300
+#define MAX_SPEED 700
 
 #define IR_LED(n,x) if(x==-1) PORTA^=(1<<(8-n)); else if(x) PORTA&=~(1<<(8-n)); else PORTA|=(1<<(8-n))
 #define max(a,b)  a > b ? a : b
