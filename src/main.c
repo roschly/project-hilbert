@@ -31,11 +31,11 @@ struct limits {
 
 struct sensors s;
 struct limits l = {
-	.longFrontCollision = 500,
-	.sideCollision = 300,
-	.wallCollision = 300,
+	.longFrontCollision = 450,
+	.sideCollision = 180,
+	.wallCollision = 250,
 	.wallDetection = 50,
-	.sideDetectionMax = 200,
+	.sideDetectionMax = 300,
 	.sideDetectionMin = 100
 };
 struct attachment a = {
@@ -53,7 +53,7 @@ void driveStraightAhead();
 
 int main(void) {
 
-	//init();
+	init();
 
 	while(1) {
 
@@ -67,6 +67,8 @@ int main(void) {
 
 
 		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
+		//printf("attached?: %i \n", a.toWall);
+		//printf("sensor left: %i - side sensor: %i \n", s.left, a.sideSensor);
 		//_delay_ms(2500);
 
 
@@ -79,17 +81,42 @@ int main(void) {
 		// 3. drive straight ahead
 
 
-		if ( onCollisionCourse(&s, &l) == 1 ){
-			avoidCollision(&s, &l, &a);
+		/*
+		a.toWall = 1;
+		a.side = 'R';
+		followWall(&s, &l, &a, speed);
+		*/
+
+
+/*
+		if ( a.toWall == 1 && needWallAdjustment(&s, &l, &a) == 1 ){
+			followWall(&s, &l, &a, speed);
 		}
 		else {
+			driveStraightAhead(&s, &l, &a, speed);
+		}
+*/
+
+
+
+		if ( onCollisionCourse(&s, &l) == 1 ){
+			avoidCollision(&s, &l, &a, speed);
+		}
+		else {
+			
+
+			/*
 			if ( a.toWall == 1 && needWallAdjustment(&s, &l, &a) == 1 ){
 				followWall(&s, &l, &a, speed);
 			}
 			else {
 				driveStraightAhead(&s, &l, &a, speed);
 			}
+			*/
+
+			driveStraightAhead(&s, &l, &a, speed);
 		}
+
 
 	}
 }
@@ -105,16 +132,16 @@ int onCollisionCourse(struct sensors *s, struct limits *l){
 }
 
 // avoid collision
-void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a) {
+void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a, int speed) {
 	// if long range sensor OR sensor left/right too high
 	// turn hard left/right
 	if (s->longRange > l->longFrontCollision && a->toWall == 1){
 		// get highest sensor left/right and turn opposite
 		if (s->left > s->right){
-			turnRightHard(300);
+			turnRightHard(250);
 		}
 		else {
-			turnLeftHard(300);
+			turnLeftHard(250);
 		}
 	}
 	// first time encountering a wall, attach to it
@@ -122,38 +149,59 @@ void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a) {
 		a->toWall = 1;
 		if (s->left > s->right){
 			a->side = 'L';
-			a->sideSensor = &s->left;
-			a->wallSensor = &s->leftWall;
-			turnRightHard(300);
+			//a->sideSensor = &s->left;
+			//a->wallSensor = &s->leftWall;
+			turnRightHard(250);
+			//turnRightSoft(speed, 300);
 		}
 		else {
 			a->side = 'R';
-			a->sideSensor = &s->right;
-			a->wallSensor = &s->rightWall;
-			turnLeftHard(300);
+			//a->sideSensor = &s->right;
+			//a->wallSensor = &s->rightWall;
+			turnLeftHard(250);
+			//turnLeftSoft(speed, 300);
 		}
 	}
 
 	// side sensors
 	if (s->left > l->sideCollision){
-		turnRightHard(300);
+		turnRightHard(250);
+		//turnRightSoft(speed, 300);
 	}
 	if (s->right > l->sideCollision){
-		turnLeftHard(300);
+		turnLeftHard(250);
+		//turnLeftSoft(speed, 300);
 	}
 
+/*
 	// wall sensors
 	if (s->leftWall > l->wallCollision){
-		turnRightHard(300);
+		turnRightHard(150);
+		//turnRightSoft(speed, 300);
 	}
 	if (s->rightWall > l->wallCollision){
-		turnLeftHard(300);
+		turnLeftHard(150);
+		//turnLeftSoft(speed, 300);
 	}
+*/
 }
 
 //
 int needWallAdjustment(struct sensors *s, struct limits *l, struct attachment *a){
-	if (*a->wallSensor < l->wallDetection || *a->sideSensor > l->sideDetectionMax || *a->sideSensor < l->sideDetectionMin){
+	int sideSensor = 0;
+	int wallSensor = 0;
+
+	if (a->side == 'L'){
+		sideSensor = s->left;
+		wallSensor = s->leftWall;
+	}
+	if (a->side == 'R'){
+		sideSensor = s->right;
+		wallSensor = s->rightWall;
+	}
+
+	if (sideSensor > l->sideDetectionMax || sideSensor < l->sideDetectionMin){
+	//if (wallSensor < l->wallDetection || sideSensor > l->sideDetectionMax || sideSensor < l->sideDetectionMin){
 		return 1;
 	}
 	else {
@@ -163,31 +211,63 @@ int needWallAdjustment(struct sensors *s, struct limits *l, struct attachment *a
 
 // follow wall
 void followWall(struct sensors *s, struct limits *l, struct attachment *a, int speed){
-	int deg = 100;
+	int deg = 250;
+	int sideSensor = 0;
+	int wallSensor = 0;
+
+	if (a->side == 'L'){
+		sideSensor = s->left;
+		wallSensor = s->leftWall;
+	}
+	if (a->side == 'R'){
+		sideSensor = s->right;
+		wallSensor = s->rightWall;
+	}
+
+	if (sideSensor > l->sideDetectionMax){
+		if (a->side == 'L'){
+			turnSoft('R', 100, 100);
+		}
+		else {
+			turnSoft('L', 100, 100);
+		}
+	}
+	/*
+	// if sideSensor too far from wall
+	// turn soft towards it
+
+	if (sideSensor < l->sideDetectionMin){
+		turnSoft(a->side, speed-200, deg);
+	}
+*/
+
+/*
 	// if wall sensor does NOT detect a wall, hard adjustments
 	// "search for wall"
-	if (*a->wallSensor < l->wallDetection){
+	if (wallSensor < l->wallDetection){
 		turnHard(a->side, deg);
 	}
 	// if wall sensor detects a wall, soft adjustments
 	else {
 		// if sideSensor too close to wall
 		// turn soft away
-		if (*a->sideSensor > l->sideDetectionMax){
+		if (sideSensor > l->sideDetectionMax){
 			if (a->side == 'L'){
-				turnSoft('R', speed, deg);
+				turnSoft('R', 100, 100);
 			}
 			else {
-				turnSoft('L', speed, deg);
+				turnSoft('L', 100, 100);
 			}
 		}
 		// if sideSensor too far from wall
 		// turn soft towards it
-		if (*a->sideSensor < l->sideDetectionMin){
-			turnSoft(a->side, speed, deg);
-		}
-	}
 
+		if (sideSensor < l->sideDetectionMin){
+			turnSoft(a->side, speed-200, deg);
+		}
+
+	}
+*/
 
 
 }
@@ -200,10 +280,15 @@ void sprint(){
 
 // drive straight ahead
 void driveStraightAhead(struct sensors *s, struct limits *l, struct attachment *a, int speed){
+
+		moveForward(speed - s->longRange);
+
+	/*
 	if (s->longRange > 400){
 		moveForward(speed - s->longRange);
 	}
 	else {
 		moveForward(speed);
 	}
+	*/
 }
