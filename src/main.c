@@ -14,12 +14,29 @@
 #include "defines.c"
 #include "control.c"
 
-int frontDist(int slr, int sf);
-int sticky(int sensor);
-double scaleSensor(int sensor);
+
+struct limits {
+	int longFrontCollision, sideCollision, wallCollision, wallDetection, sideDetectionMax, sideDetectionMin;
+};
+struct limits l = {
+	.longFrontCollision = 500,
+	.sideCollision = 300,
+	.wallCollision = 300,
+	.wallDetection = 50,
+	.sideDetectionMax = 200,
+	.sideDetectionMin = 100
+};
+
+struct sensors {
+	int longRange, front, left, right, leftWall, rightWall;
+};
+
+struct sensors s;
 
 int main(void)
 {
+
+
 
 	init();
 
@@ -28,6 +45,11 @@ int main(void)
 
 
 	while(1) {
+
+		s.longRange = getIR(3);
+
+		//printf("front: %i \n", s.front);
+		//_delay_ms(2500);
 
 		int ir[6];
 		ir[0] = getIR(5); //Long range front
@@ -46,67 +68,70 @@ int main(void)
 		int slw = getIR(1);
 		int srw = getIR(5);
 
+		int speed = 500;
 
-		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
-		//_delay_ms(2500);
+		driveStraightAhead(&s, &l, speed);
 
 
-		// long path
-		// slr < ca 60-100,
-
-		// srw 50-100 > slw
-
-		// slr deadzone is ca 640
-		// sf deadzone is ca 175
-
-		//setLeftSpeed(620.0 - frontDist(slr, sf) - 2.5*sr + 3.5*sl + 1.0*slw  /* + attSide(slw) - attSide(srw)*/ );
-		//setRightSpeed(620.0 - frontDist(slr, sf) - 2.5*sl + 3.5*sr + 1.0*srw /* + attSide(srw) - attSide(slw)*/ );
-		//setLeftSpeed(300 - sf - sr + sl + attSide(slw) - attSide(srw));
-		//setRightSpeed(300 - sf - sl + sr + attSide(srw) - attSide(slw));
-
-		//setLeftSpeed(680 - frontDist(slr, sf) - 1.5*sr + 1.5*sl + 0.5*slw);
-		//setRightSpeed(680 - frontDist(slr, sf) - 1.5*sl + 1.5*sr + 0.5*srw);
-
-		//setLeftSpeed(MAX_SPEED - frontDist(slr, sf) -3.5*scaleSensor(sr) + 2.0*scaleSensor(sl) -1.5*srw + sticky(slw) );
-		//setRightSpeed(MAX_SPEED - frontDist(slr, sf) -3.5*scaleSensor(sl) + 2.0*scaleSensor(sr) -1.5*slw + sticky(srw) );
-
-		setLeftSpeed(MAX_SPEED - frontDist(slr, sf) - 4.5*sr + 1.5*sl + sticky(slw) );
-		setRightSpeed(MAX_SPEED - frontDist(slr, sf) - 4.5*sl + 1.5*sr + sticky(srw) );
 
 
 		}
 	}
 
-int frontDist(int slr, int sf){
-	if (slr > 600 ){
-		return MAX_SPEED + 50;
+/*
+	// avoid collision
+void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a) {
+	// if long range sensor OR sensor left/right too high
+	// turn hard left/right
+	if (s->longRange > l->longFrontCollision && a->toWall == 1){
+		// get highest sensor left/right and turn opposite
+		if (s->left > s->right){
+			turnRightHard(300);
+		}
+		else {
+			turnLeftHard(300);
+		}
 	}
-	else {
-		return slr;
+	// first time encountering a wall, attach to it
+	if (s->longRange > l->longFrontCollision && a->toWall == 0){
+		a->toWall = 1;
+		if (s->left > s->right){
+			a->side = 'L';
+			a->sideSensor = &s->left;
+			a->wallSensor = &s->leftWall;
+			turnRightHard(300);
+		}
+		else {
+			a->side = 'R';
+			a->sideSensor = &s->right;
+			a->wallSensor = &s->rightWall;
+			turnLeftHard(300);
+		}
 	}
 
-};
+	// side sensors
+	if (s->left > l->sideCollision){
+		turnRightHard(300);
+	}
+	if (s->right > l->sideCollision){
+		turnLeftHard(300);
+	}
 
-int sticky(int sensor){
-	// too close, move away
-	if (sensor > 200){
-		return 0.7*sensor;
+	// wall sensors
+	if (s->leftWall > l->wallCollision){
+		turnRightHard(300);
 	}
-	// beginning to slip away, move closer
-	else if (sensor < 150 && sensor > 30){
-		return (-1.5)*sensor;
-	}
-	// too far away, no attraction
-	else {
-		return 0;
+	if (s->rightWall > l->wallCollision){
+		turnLeftHard(300);
 	}
 }
-
-double scaleSensor(int sensor){
-	if (sensor > 250){
-		return 0.5*sensor;
+*/
+// drive straight ahead
+void driveStraightAhead(struct sensors *s, struct limits *l, int speed){
+	if (s->longRange > l->longFrontCollision){
+		moveForward(speed - s->longRange);
 	}
-	else{
-		return sensor;
+	else {
+		moveForward(speed);
 	}
 }
