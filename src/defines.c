@@ -5,7 +5,7 @@
 #define P_PRESENT_POSITION_H	37
 #define P_MOVING				46
 
-// Defulat setting
+// Default setting
 #define DEFAULT_BAUDNUM		1 // 1Mbps
 #define DEFAULT_ID			1
 

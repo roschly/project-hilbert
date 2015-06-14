@@ -107,6 +107,16 @@ void turnRightHard(int deg) {
 	setLeftSpeed(deg);
 }
 
+void turnHard(char direction, int deg){
+	if (direction == 'L'){
+		setRightSpeed(deg);
+		setLeftSpeed(-deg);
+	}
+	if (direction == 'R'){
+		setRightSpeed(-deg);
+		setLeftSpeed(deg);
+	}
+}
 
 void moveForward(int speed) {
 	setRightSpeed(speed);

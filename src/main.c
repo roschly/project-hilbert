@@ -14,211 +14,196 @@
 #include "defines.c"
 #include "control.c"
 
-int main(void)
-{
+struct attachment {
+	int toWall;
+	char side;
+	int *sideSensor;
+	int *wallSensor;
+};
 
-	init();
+struct sensors {
+	int longRange, front, left, right, leftWall, rightWall;
+};
 
-	int attachedToWall = 0;
-	char attachmentSide = 'N'; // N for null
+struct limits {
+	int longFrontCollision, sideCollision, wallCollision, wallDetection, sideDetectionMax, sideDetectionMin;
+};
+
+struct sensors s;
+struct limits l = {
+	.longFrontCollision = 500,
+	.sideCollision = 300,
+	.wallCollision = 300,
+	.wallDetection = 50,
+	.sideDetectionMax = 200,
+	.sideDetectionMin = 100
+};
+struct attachment a = {
+	.toWall = 0,
+	.side = 'N'
+};
+
+// prototypes
+int onCollisionCourse();
+void avoidCollision();
+int needWallAdjustment();
+void followWall();
+void driveStraightAhead();
+
+
+int main(void) {
+
+	//init();
 
 	while(1) {
 
-		int ir[6];
-		ir[0] = getIR(5); //Long range front
-		ir[1] = getIR(2); //Short range front
-		ir[2] = getIR(1); //Left
-		ir[3] = getIR(6); //Right
-		ir[4] = getIR(3); // left wall
-		ir[5] = getIR(4); // right wall
-
-		// int speed = calcSpeed(ir, 600);
-		int sl = ir[2];
-		int sr = ir[3];
-		int sf = ir[1];
-		int slr = ir[0];
-		int slw = ir[4];
-		int srw = ir[5];
+		// sample sensors
+		s.longRange = getIR(3);
+		s.front = getIR(4);
+		s.left = getIR(6);
+		s.right = getIR(2);
+		s.leftWall = getIR(1);
+		s.rightWall = getIR(5);
 
 
 		//printf("sl: %i - sr: %i - sf: %i - slr: %i - slw: %i - srw: %i \n", sl, sr, sf, slr, slw, srw);
 		//_delay_ms(2500);
 
-		int speed = 300;
-
-			// if not on collision course AND NOT attachedToWall
-			if (slr <= 350 && attachedToWall == 0) {
-				moveForward(speed);
-
-				// TODO: avoid collision based on side sensors
-			}
-
-			// when first in front-proximity of wall
-			if (slr > 350 && attachedToWall == 0){
-				attachedToWall = 1;
-				//
-				// if closer to left wall, attach to it
-				//
-				if (sl > sr){
-					attachmentSide = 'L';
-				}
-				if (sl <= sr){
-					attachmentSide = 'R';
-				}
-			}
-
-				if (attachmentSide == 'L'){
-					// LEFT LEFT
-					// if on collision course
-					if (slr > 350){
-						// set speed to 0
-						moveForward(0);
-						// get sensor and turn away from it
-						while ( getIR(5) > 150 ){
-							turnRightHard(500);
-						}
-					}
-
-					// if not on collision course AND attachedToWall
-					if (slr <= 350 && attachedToWall == 1) {
-						moveForward(speed);
-
-						// if in proximity of wall
-						if (slw > 50 && sl > 20){
-							// if too close to wall
-							if (sl > 75 ){
-								turnRightSoft(speed, 200);
-							}
-							// if too far from wall
-							if (sl < 30 ){
-								turnLeftSoft(speed, 200);
-							}
-							// if
-						}
-						// if NOT in proximity of wall
-						if (slw <= 50){
-							while (getIR(5) < 150 && getIR(1) < 80){
-								turnLeftSoft(speed, 180);
-							}
-						}
-					}
-				}
-
-				if (attachmentSide == 'R'){
-					// RIGHT RIGHT
-					// if on collision course
-					if (slr > 350){
-						// set speed to 0
-						moveForward(0);
-						// get sensor and turn away from it
-						while ( getIR(5) > 150 ){
-							turnLeftHard(500);
-						}
-					}
-
-					// if not on collision course AND attachedToWall
-					if (slr <= 350 && attachedToWall == 1) {
-						moveForward(speed);
-
-						// if in proximity of wall
-						if (srw > 50 && sr > 20){
-							// if too close to wall
-							if (sr > 75 ){
-								turnLeftSoft(speed, 200);
-							}
-							// if too far from wall
-							if (sr < 30 ){
-								turnRightSoft(speed, 200);
-							}
-							// if
-						}
-						// if NOT in proximity of wall
-						if (srw <= 50){
-							while (getIR(5) < 150 && getIR(6) < 80){
-								turnRightSoft(speed, 180);
-							}
-						}
-					}
-				}
-
-		}
 
 		int speed = 600;
-		int closeProximity = 100;
 
 		// general protocol, priority list
 		// 1. avoid collision
 		// 2. followWall
-		// 3. searchForWall
-		// 4. drive straight ahead
+		//		- 2a search for wall
+		// 3. drive straight ahead
 
-		// avoid collision
-		void avoidCollision() {
-			// if sensor front OR sensor left/right too high
-			// turn hard left/right
 
-			if (sf > closeProximity){
-				// get highest sensor left/right and turn opposite
-				if (sl > sr){
-					turnRightSoft();
-				}
-				if (sl <= sr){
-					turnLeftSoft();
-				}
-			}
-
-			if (sl > closeProximity){
-				turnRightHard();
-			}
-			if (sr > closeProximity){
-				turnLeftHard();
-			}
+		if ( onCollisionCourse(&s, &l) == 1 ){
+			avoidCollision(&s, &l, &a);
 		}
-
-		// follow wall
-		void followWall(){
-
-			int sensor = 0;
-			char direction = 'N';
-
-			// which side is the wall on
-			if ( slw > srw){
-				direction = 'L';
-				sensor = slw;
+		else {
+			if ( a.toWall == 1 && needWallAdjustment(&s, &l, &a) == 1 ){
+				followWall(&s, &l, &a, speed);
 			}
 			else {
-				direction = 'R';
-				sensor = srw;
-			};
-
-			// if too close to wall
-			// turn soft away
-			if (sensor > 200){
-				turnSoft(, speed, deg);
+				driveStraightAhead(&s, &l, &a, speed);
 			}
-
-			//if too far from wall, but not too far
-			// turn soft towards it
-			if (sensor < 100 && sensor > 30){
-				turnSoft();
-			}
-
 		}
 
-		// search for wall
-		void searchForWall(){
+	}
+}
 
+// condition
+int onCollisionCourse(struct sensors *s, struct limits *l){
+	if ( s->longRange > l->longFrontCollision || s->left > l->sideCollision || s->right > l->sideCollision || s->leftWall > l->wallCollision || s->rightWall > l->wallCollision ){
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+// avoid collision
+void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a) {
+	// if long range sensor OR sensor left/right too high
+	// turn hard left/right
+	if (s->longRange > l->longFrontCollision && a->toWall == 1){
+		// get highest sensor left/right and turn opposite
+		if (s->left > s->right){
+			turnRightHard(300);
 		}
-
-		// sprint, maybe not?
-		void sprint(){
-			// if slr is very low, long distance ahead
-			//
-		}
-
-		// drive straight ahead
-		void driveStraightAhead(){
-			// drive straight
-			// let speed be dependent on slr
+		else {
+			turnLeftHard(300);
 		}
 	}
+	// first time encountering a wall, attach to it
+	if (s->longRange > l->longFrontCollision && a->toWall == 0){
+		a->toWall = 1;
+		if (s->left > s->right){
+			a->side = 'L';
+			a->sideSensor = &s->left;
+			a->wallSensor = &s->leftWall;
+			turnRightHard(300);
+		}
+		else {
+			a->side = 'R';
+			a->sideSensor = &s->right;
+			a->wallSensor = &s->rightWall;
+			turnLeftHard(300);
+		}
+	}
+
+	// side sensors
+	if (s->left > l->sideCollision){
+		turnRightHard(300);
+	}
+	if (s->right > l->sideCollision){
+		turnLeftHard(300);
+	}
+
+	// wall sensors
+	if (s->leftWall > l->wallCollision){
+		turnRightHard(300);
+	}
+	if (s->rightWall > l->wallCollision){
+		turnLeftHard(300);
+	}
+}
+
+//
+int needWallAdjustment(struct sensors *s, struct limits *l, struct attachment *a){
+	if (*a->wallSensor < l->wallDetection || *a->sideSensor > l->sideDetectionMax || *a->sideSensor < l->sideDetectionMin){
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+// follow wall
+void followWall(struct sensors *s, struct limits *l, struct attachment *a, int speed){
+	int deg = 100;
+	// if wall sensor does NOT detect a wall, hard adjustments
+	// "search for wall"
+	if (*a->wallSensor < l->wallDetection){
+		turnHard(a->side, deg);
+	}
+	// if wall sensor detects a wall, soft adjustments
+	else {
+		// if sideSensor too close to wall
+		// turn soft away
+		if (*a->sideSensor > l->sideDetectionMax){
+			if (a->side == 'L'){
+				turnSoft('R', speed, deg);
+			}
+			else {
+				turnSoft('L', speed, deg);
+			}
+		}
+		// if sideSensor too far from wall
+		// turn soft towards it
+		if (*a->sideSensor < l->sideDetectionMin){
+			turnSoft(a->side, speed, deg);
+		}
+	}
+
+
+
+}
+
+// sprint, maybe not?
+void sprint(){
+	// if slr is very low, long distance ahead
+	// dont bother to follow the wall, just sprint ahead
+}
+
+// drive straight ahead
+void driveStraightAhead(struct sensors *s, struct limits *l, struct attachment *a, int speed){
+	if (s->longRange > 400){
+		moveForward(speed - s->longRange);
+	}
+	else {
+		moveForward(speed);
+	}
+}
