@@ -84,7 +84,7 @@ int main(void) {
 
 
 
-		if (s.longRange < 50 && bla == 0 || s.longRange < 120 && bla == 1 ){
+		if (s.longRange < 50 && bla == 0 || s.longRange < 110 && bla == 1 ){
 			if (bla == 0){
 				bla = 1;
 			}
