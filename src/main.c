@@ -72,7 +72,7 @@ int main(void) {
 		//_delay_ms(2500);
 
 
-		int speed = 600;
+		int speed = calculateSpeed(&s, 600);
 
 		// general protocol, priority list
 		// 1. avoid collision
@@ -112,45 +112,43 @@ int onCollisionCourse(struct sensors *s, struct limits *l){
 
 // avoid collision
 void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a, int speed) {
-	// if long range sensor OR sensor left/right too high
-	// turn hard left/right
-	if (s->longRange > l->longFrontCollision && a->toWall == 1){
-		// get highest sensor left/right and turn opposite
-		if (s->left > s->right){
-			turnRightHard(250);
+	if (s->longRange > l->longFrontCollision){
+		if (a->toWall == 1){
+			if (a->side == 'L'){
+				turnRightHard(250);
+			}
+			if (a->side == 'R'){
+				turnLeftHard(250);
+			}
 		}
-		else {
-			turnLeftHard(250);
+		if (a->toWall == 0) {
+			a->toWall = 1;
+			if (s->left >= s->right){
+				a->side = 'L';
+				turnRightHard(250);
+				//turnRightSoft(speed, 300);
+			}
+			else {
+				a->side = 'R';
+				turnLeftHard(250);
+				//turnLeftSoft(speed, 300);
+			}
 		}
-	}
-	// first time encountering a wall, attach to it
-	if (s->longRange > l->longFrontCollision && a->toWall == 0){
-		a->toWall = 1;
-		if (s->left > s->right){
-			a->side = 'L';
-			//a->sideSensor = &s->left;
-			//a->wallSensor = &s->leftWall;
+	// else
+	// TODO: maybe remove this part?
+	/*
+	if (s->longRange <= l->longFrontCollision){
+		// side sensors
+		if (s->left > l->sideCollision){
 			turnRightHard(250);
 			//turnRightSoft(speed, 300);
 		}
-		else {
-			a->side = 'R';
-			//a->sideSensor = &s->right;
-			//a->wallSensor = &s->rightWall;
+		if (s->right > l->sideCollision){
 			turnLeftHard(250);
 			//turnLeftSoft(speed, 300);
 		}
 	}
-
-	// side sensors
-	if (s->left > l->sideCollision){
-		turnRightHard(250);
-		//turnRightSoft(speed, 300);
-	}
-	if (s->right > l->sideCollision){
-		turnLeftHard(250);
-		//turnLeftSoft(speed, 300);
-	}
+	*/
 
 /*
 	// wall sensors
@@ -203,18 +201,17 @@ void followWall(struct sensors *s, struct limits *l, struct attachment *a, int s
 		wallSensor = s->rightWall;
 	}
 
+	// too close to wall
 	if (sideSensor > l->sideDetectionMax){
 		if (a->side == 'L'){
 			turnSoft('R', speed, 200);
 		}
-		else {
+		if (a->side == 'R') {
 			turnSoft('L', speed, 200);
 		}
 	}
 
-	// if sideSensor too far from wall
-	// turn soft towards it
-
+	// too far from wall
 	if (sideSensor < l->sideDetectionMin){
 		turnSoft(a->side, speed, 200);
 	}
@@ -256,7 +253,7 @@ void followWall(struct sensors *s, struct limits *l, struct attachment *a, int s
 // drive straight ahead
 void driveStraightAhead(struct sensors *s, struct limits *l, struct attachment *a, int speed){
 
-		moveForward(speed - s->longRange);
+		moveForward(speed);
 
 	/*
 	if (s->longRange > 400){

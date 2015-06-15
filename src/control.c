@@ -13,6 +13,10 @@ int deg2speed(int deg) {
 	return deg/100*MAX_SPEED;
 }
 
+int calculateSpeed(struct sensors *s, int baseSpeed){
+	return baseSpeed - s->longRange;
+}
+
 int calcSpeed(int ir[], int baseSpeed) {
 	int speed;
 
