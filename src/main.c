@@ -72,7 +72,7 @@ int main(void) {
 		//_delay_ms(2500);
 
 
-		int speed = calculateSpeed(&s, 600);
+		int speed = calculateSpeed(s.longRange, 600);
 
 		// general protocol, priority list
 		// 1. avoid collision
@@ -90,7 +90,7 @@ int main(void) {
 				followWall(&s, &l, &a, speed);
 			}
 			else {
-				driveStraightAhead(&s, &l, &a, speed);
+				driveStraightAhead(speed);
 			}
 			//driveStraightAhead(&s, &l, &a, speed);
 		}
@@ -102,7 +102,7 @@ int main(void) {
 // condition
 int onCollisionCourse(struct sensors *s, struct limits *l){
 	//if ( s->longRange > l->longFrontCollision || s->left > l->sideCollision || s->right > l->sideCollision || s->leftWall > l->wallCollision || s->rightWall > l->wallCollision ){
-	if ( s->longRange > l->longFrontCollision || s->left > l->sideCollision || s->right > l->sideCollision){
+	if ( s->longRange > l->longFrontCollision /*|| s->left > l->sideCollision || s->right > l->sideCollision */){
 		return 1;
 	}
 	else {
@@ -150,7 +150,7 @@ void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a, i
 	}
 	*/
 
-/*
+	/*
 	// wall sensors
 	if (s->leftWall > l->wallCollision){
 		turnRightHard(150);
@@ -160,7 +160,8 @@ void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a, i
 		turnLeftHard(150);
 		//turnLeftSoft(speed, 300);
 	}
-*/
+	*/
+	}
 }
 
 //
@@ -217,7 +218,7 @@ void followWall(struct sensors *s, struct limits *l, struct attachment *a, int s
 	}
 
 
-/*
+	/*
 	// if wall sensor does NOT detect a wall, hard adjustments
 	// "search for wall"
 	if (wallSensor < l->wallDetection){
@@ -243,24 +244,14 @@ void followWall(struct sensors *s, struct limits *l, struct attachment *a, int s
 		}
 
 	}
-*/
-
-
+	*/
 }
 
 
 
 // drive straight ahead
-void driveStraightAhead(struct sensors *s, struct limits *l, struct attachment *a, int speed){
+void driveStraightAhead(int speed){
 
 		moveForward(speed);
 
-	/*
-	if (s->longRange > 400){
-		moveForward(speed - s->longRange);
-	}
-	else {
-		moveForward(speed);
-	}
-	*/
-}
+};
