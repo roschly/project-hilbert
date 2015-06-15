@@ -14,7 +14,7 @@ int deg2speed(int deg) {
 }
 
 int calculateSpeed(int longRange, int baseSpeed){
-	return baseSpeed - longRange;
+		return baseSpeed - longRange;
 }
 
 int calcSpeed(int ir[], int baseSpeed) {
