@@ -15,28 +15,8 @@
 #include "control.c"
 
 
-struct limits {
-	int longFrontCollision, sideCollision, wallCollision, wallDetection, sideDetectionMax, sideDetectionMin;
-};
-struct limits l = {
-	.longFrontCollision = 500,
-	.sideCollision = 300,
-	.wallCollision = 300,
-	.wallDetection = 50,
-	.sideDetectionMax = 200,
-	.sideDetectionMin = 100
-};
-
-struct sensors {
-	int longRange, front, left, right, leftWall, rightWall;
-};
-
-struct sensors s;
-
 int main(void)
 {
-
-
 
 	init();
 
@@ -44,9 +24,7 @@ int main(void)
 	char attachmentSide = 'N'; // N for null
 
 
-	while(1) {
-
-		s.longRange = getIR(3);
+	while(1){
 
 		//printf("front: %i \n", s.front);
 		//_delay_ms(2500);
@@ -68,70 +46,101 @@ int main(void)
 		int slw = getIR(1);
 		int srw = getIR(5);
 
-		int speed = 500;
+		int speed = 600;
 
-		driveStraightAhead(&s, &l, speed);
+		// if not on collision course AND NOT attachedToWall
+		if (slr <= 350 && attachedToWall == 0) {
+			moveForward(speed);
 
-
-
-
+			// TODO: avoid collision based on side sensors
 		}
-	}
 
-/*
-	// avoid collision
-void avoidCollision(struct sensors *s, struct limits *l, struct attachment *a) {
-	// if long range sensor OR sensor left/right too high
-	// turn hard left/right
-	if (s->longRange > l->longFrontCollision && a->toWall == 1){
-		// get highest sensor left/right and turn opposite
-		if (s->left > s->right){
-			turnRightHard(300);
+		// when first in front-proximity of wall
+		if (slr > 350 && attachedToWall == 0){
+			attachedToWall = 1;
+			//
+			// if closer to left wall, attach to it
+			//
+			if (sl > sr){
+				attachmentSide = 'L';
+			}
+			if (sl <= sr){
+				attachmentSide = 'R';
+			}
 		}
-		else {
-			turnLeftHard(300);
-		}
-	}
-	// first time encountering a wall, attach to it
-	if (s->longRange > l->longFrontCollision && a->toWall == 0){
-		a->toWall = 1;
-		if (s->left > s->right){
-			a->side = 'L';
-			a->sideSensor = &s->left;
-			a->wallSensor = &s->leftWall;
-			turnRightHard(300);
-		}
-		else {
-			a->side = 'R';
-			a->sideSensor = &s->right;
-			a->wallSensor = &s->rightWall;
-			turnLeftHard(300);
-		}
-	}
 
-	// side sensors
-	if (s->left > l->sideCollision){
-		turnRightHard(300);
-	}
-	if (s->right > l->sideCollision){
-		turnLeftHard(300);
-	}
+		if (attachmentSide == 'L'){
+			// LEFT LEFT
+			// if on collision course
+			if (slr > 350){
+				// set speed to 0
+				moveForward(0);
+				// get sensor and turn away from it
+				while ( getIR(5) > 150 ){
+					turnRightHard(500);
+				}
+			}
 
-	// wall sensors
-	if (s->leftWall > l->wallCollision){
-		turnRightHard(300);
-	}
-	if (s->rightWall > l->wallCollision){
-		turnLeftHard(300);
-	}
-}
-*/
-// drive straight ahead
-void driveStraightAhead(struct sensors *s, struct limits *l, int speed){
-	if (s->longRange > l->longFrontCollision){
-		moveForward(speed - s->longRange);
-	}
-	else {
-		moveForward(speed);
+			// if not on collision course AND attachedToWall
+			if (slr <= 350 && attachedToWall == 1) {
+				moveForward(speed);
+
+				// if in proximity of wall
+				if (slw > 50 && sl > 20){
+					// if too close to wall
+					if (sl > 75 ){
+						turnRightSoft(speed, 200);
+					}
+					// if too far from wall
+					if (sl < 30 ){
+						turnLeftSoft(speed, 200);
+					}
+					// if
+				}
+				// if NOT in proximity of wall
+				if (slw <= 50){
+					while (getIR(5) < 150 && getIR(1) < 80){
+						turnLeftSoft(speed, 180);
+					}
+				}
+			}
+		}
+
+		if (attachmentSide == 'R'){
+			// RIGHT RIGHT
+			// if on collision course
+			if (slr > 350){
+				// set speed to 0
+				moveForward(0);
+				// get sensor and turn away from it
+				while ( getIR(5) > 150 ){
+					turnLeftHard(500);
+				}
+			}
+
+			// if not on collision course AND attachedToWall
+			if (slr <= 350 && attachedToWall == 1) {
+				moveForward(speed);
+
+				// if in proximity of wall
+				if (srw > 50 && sr > 20){
+					// if too close to wall
+					if (sr > 75 ){
+						turnLeftSoft(speed, 200);
+					}
+					// if too far from wall
+					if (sr < 30 ){
+						turnRightSoft(speed, 200);
+					}
+					// if
+				}
+				// if NOT in proximity of wall
+				if (srw <= 50){
+					while (getIR(5) < 150 && getIR(6) < 80){
+						turnRightSoft(speed, 180);
+					}
+				}
+			}
+		}
 	}
 }
