@@ -7,130 +7,61 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
+#include <util/delay.h>
 
 #include "dynamixel.h"
 #include "serial.h"
 #include "control.c"
 
 // Motor IDs
-#define FOOT_FR 1
-#define FOOT_BR 2
-#define FOOT_FL 3
-#define FOOT_BL 4
+#define FFR 3
+#define FBR 5
+#define FFL 1
+#define FBL 4
 
-#define HIP_FR 5
-#define HIP_BR 6
-#define HIP_FL 7
-#define HIP_BL 8
+#define HFR 6
+#define HBR 2
+#define HFL 8
+#define HBL 7
 
 void PrintCommStatus(int CommStatus);
 void PrintErrorCode(void);
 
 int main(void)
 {
-	unsigned short GoalPos[2] = {200, 450};
-	//unsigned short GoalPos[2] = {0, 4095}; // for EX series
-	int index = 0;
-	int id = 1;
-	int bMoving, wPresentPos;
-	int CommStatus;
+
 
 	init();
 
-	setAngle(FOOT_FR, 200);
-	setAngle(FOOT_FL ,200);
+	//setAngle(FOOT_FR, 0);
+	//setAngle(FOOT_FL, 0);
+
+	//feetNeutral();
+	//hipNeutral();
+	setAngle(FFR, 0);
+	setAngle(FFL, 0);
+	setAngle(FBR, 0);
+	setAngle(FBL, 0);
+
+
+	setAngle(HFR, -100);
+	setAngle(HFL, 100);
+	setAngle(HBR, 100);
+	setAngle(HBL, -100);
 
 	while(1)
 	{
-		// // Check moving done
-		// bMoving = dxl_read_byte( id, P_MOVING );
-		// CommStatus = dxl_get_result();
-		// if( CommStatus == COMM_RXSUCCESS )
-		// {
-		// 	if( bMoving == 0 )
-		// 	{
-		// 		// Change goal position
-		// 		if( index == 0 )
-		// 			index = 1;
-		// 		else
-		// 			index = 0;
 
-		// 		// Write goal position
-		// 		setRightFrontFoot(GoalPos[index]);
-		// 		setRightBackFoot(GoalPos[!index]);		
-		// 	}
-			
-		// 	PrintErrorCode();
-			
-		// 	// Read present position
-		// 	wPresentPos = dxl_read_word( id, P_PRESENT_POSITION_L );
-		// 	printf( "%d   %d\n",GoalPos[index], wPresentPos );
-		// }
-		// else
-		// 	PrintCommStatus(CommStatus);
-		
+		//printf("%i - %i - %i - %i - %i - %i - %i - %i \n", dxl_read_word(1,36), dxl_read_word(2,36), dxl_read_word(3,36), dxl_read_word(4,36), dxl_read_word(5,36), dxl_read_word(6,36), dxl_read_word(7,36), dxl_read_word(8,36));
+		// hips
+		//printf("%i - %i - %i - %i \n", dxl_read_word(2,36), dxl_read_word(6,36), dxl_read_word(7,36), dxl_read_word(8,36));
+		//_delay_ms(2500);
+
+		//moveForward(speed);
+
+
+
 	}
 
 	return 0;
 }
-
-// Print communication result
-void PrintCommStatus(int CommStatus)
-{
-	switch(CommStatus)
-	{
-	case COMM_TXFAIL:
-		printf("COMM_TXFAIL: Failed transmit instruction packet!\n");
-		break;
-
-	case COMM_TXERROR:
-		printf("COMM_TXERROR: Incorrect instruction packet!\n");
-		break;
-
-	case COMM_RXFAIL:
-		printf("COMM_RXFAIL: Failed get status packet from device!\n");
-		break;
-
-	case COMM_RXWAITING:
-		printf("COMM_RXWAITING: Now recieving status packet!\n");
-		break;
-
-	case COMM_RXTIMEOUT:
-		printf("COMM_RXTIMEOUT: There is no status packet!\n");
-		break;
-
-	case COMM_RXCORRUPT:
-		printf("COMM_RXCORRUPT: Incorrect status packet!\n");
-		break;
-
-	default:
-		printf("This is unknown error code!\n");
-		break;
-	}
-}
-
-// Print error bit of status packet
-void PrintErrorCode()
-{
-	if(dxl_get_rxpacket_error(ERRBIT_VOLTAGE) == 1)
-		printf("Input voltage error!\n");
-
-	if(dxl_get_rxpacket_error(ERRBIT_ANGLE) == 1)
-		printf("Angle limit error!\n");
-
-	if(dxl_get_rxpacket_error(ERRBIT_OVERHEAT) == 1)
-		printf("Overheat error!\n");
-
-	if(dxl_get_rxpacket_error(ERRBIT_RANGE) == 1)
-		printf("Out of range error!\n");
-
-	if(dxl_get_rxpacket_error(ERRBIT_CHECKSUM) == 1)
-		printf("Checksum error!\n");
-
-	if(dxl_get_rxpacket_error(ERRBIT_OVERLOAD) == 1)
-		printf("Overload error!\n");
-
-	if(dxl_get_rxpacket_error(ERRBIT_INSTRUCTION) == 1)
-		printf("Instruction code error!\n");
-}
-
