@@ -1,4 +1,3 @@
-//
 
 
 /// Control table address
@@ -46,35 +45,31 @@ void setAngle(int id, double degree){
 	for feet: +/ 150 grader
 	*/
 
-	if (degree > 100){
-		degree = 100;
+	if (degree > 1){
+		degree = 1;
 	}
-	if (degree < -100){
-		degree = -100;
+	if (degree < -1){
+		degree = -1;
 	}
 
 
 	double angle;
 
 	//feet
-	int maxFootAngleInterval = 150;
+	int maxFootAngleInterval = 165; // 150
 	if (id == 1 || id == 3 || id == 4 || id == 5){
+		angle = degree * maxFootAngleInterval;
 		if (id == 5 || id == 3){
-			angle = (degree/100) * maxFootAngleInterval;
-		}
-		else{
-			angle = (degree/100) * maxFootAngleInterval;
+			angle = -angle;
 		}
 	}
 
 	// hips
 	int maxHipAngleInterval = 60;
 	if (id == 2 || id == 6 || id == 7 || id == 8){
+		angle = degree * maxHipAngleInterval;
 		if (id == 6 || id == 7){
-			angle = (degree/100) * maxHipAngleInterval;
-		}
-		else {
-			angle = (degree/100) * maxHipAngleInterval;
+				angle = -angle;
 		}
 	}
 
@@ -83,39 +78,19 @@ void setAngle(int id, double degree){
 
 }
 
-/*
-// onBelly, standing
-void setPredefinedPos(int pos){
-	// on belly
-	if (pos == 1){
-		setAngle
-	}
+void standingNeutral(){
+	// feet
+	setAngle(FFR, 0);
+	setAngle(FFL, 0);
+	setAngle(FBR, 0);
+	setAngle(FBL, 0);
 
-	// standing neutral
-	if (pos == 2){
-
-	}
+	// hips
+	setAngle(HFR, 0);
+	setAngle(HFL, 0);
+	setAngle(HBR, 0);
+	setAngle(HBL, 0);
 }
 
-
-
-void posStandingNeutral(){
-	feetNeutral();
-	hipNeutral();
-}
-*/
 
 // move leg forward
-void moveLeg(char leg, char direction, int angle, int speed){
-
-
-}
-
-/*
-void moveForward(int speed){
-	moveLeg('FR');
-	moveLeg('FL');
-	moveLeg('BR');
-	moveLeg('BL');
-}
-*/

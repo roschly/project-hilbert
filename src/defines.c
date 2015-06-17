@@ -1,4 +1,3 @@
-#define F_CPU 16000000UL
 
 /// Control table address
 #define P_GOAL_POSITION_L		30
@@ -22,3 +21,4 @@
 
 #define IR_LED(n,x) if(x==-1) PORTA^=(1<<(8-n)); else if(x) PORTA&=~(1<<(8-n)); else PORTA|=(1<<(8-n))
 #define max(a,b)  a > b ? a : b
+#define Pi 3.14159265359
