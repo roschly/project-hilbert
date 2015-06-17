@@ -1,4 +1,4 @@
-#include <math.h>
+//
 
 
 /// Control table address
@@ -9,17 +9,24 @@
 #define P_MOVING				46
 
 // Motor IDs
-#define FOOT_FR 3
-#define FOOT_BR 5
-#define FOOT_FL 1
-#define FOOT_BL 4
+#define FFR 3
+#define FBR 5
+#define FFL 1
+#define FBL 4
 
-#define HIP_FR 6
-#define HIP_BR 2
-#define HIP_FL 8
-#define HIP_BL 7
+#define HFR 6
+#define HBR 2
+#define HFL 8
+#define HBL 7
 
 void init() {
+	// set timer
+	TCCR1B = (1<<CS11)|(1<<CS10); //64 Prescaler
+ 	OCR1A = 249; //Equals delay 1 ms
+ 	TIMSK1 = (1<<OCIE1A); //Enable Output Compare Match Interrupt
+ 	TCNT1 = 0; //reset timer/counter 1
+ 	sei(); //Enables global interrupts
+
 	DDRA  = 0xFC;
 	PORTA = 0xFC;
 
@@ -33,7 +40,7 @@ void init() {
 
 
 // degree: int [-100:100]
-void setAngle(int id, int degree){
+void setAngle(int id, double degree){
 	/*
 	For hips: +/- 60 grader
 	for feet: +/ 150 grader
@@ -47,27 +54,27 @@ void setAngle(int id, int degree){
 	}
 
 
-	int angle;
+	double angle;
 
 	//feet
-	int maxFootAngle = 150;
+	int maxFootAngleInterval = 150;
 	if (id == 1 || id == 3 || id == 4 || id == 5){
 		if (id == 5 || id == 3){
-			angle = -floor( (degree/100) * maxFootAngle );
+			angle = (degree/100) * maxFootAngleInterval;
 		}
 		else{
-			angle = floor( (degree/100) * maxFootAngle );
+			angle = (degree/100) * maxFootAngleInterval;
 		}
 	}
 
 	// hips
-	int maxHipAngle = 60;
+	int maxHipAngleInterval = 60;
 	if (id == 2 || id == 6 || id == 7 || id == 8){
 		if (id == 6 || id == 7){
-			angle = -floor( (degree/100) * maxHipAngle );
+			angle = (degree/100) * maxHipAngleInterval;
 		}
 		else {
-			angle = floor( (degree/100) * maxHipAngle );
+			angle = (degree/100) * maxHipAngleInterval;
 		}
 	}
 
@@ -76,46 +83,31 @@ void setAngle(int id, int degree){
 
 }
 
+/*
+// onBelly, standing
+void setPredefinedPos(int pos){
+	// on belly
+	if (pos == 1){
+		setAngle
+	}
 
-void setMotorAngle(int id, int angle) {
+	// standing neutral
+	if (pos == 2){
 
-	if (angle > 1023)
-		angle = 1023;
-
-	if (angle < 0)
-		angle = 0;
-
-	dxl_write_word(id, 30, angle);
-
-}
-void feetNeutral(){
-	setMotorAngle(FOOT_FR, 512); // 510
-	setMotorAngle(FOOT_FL, 512); // 520
-	setMotorAngle(FOOT_BR, 512); // 518
-	setMotorAngle(FOOT_BL, 512); // 511
-
+	}
 }
 
-void hipNeutral(){
-	setMotorAngle(HIP_FR, 512);
-	setMotorAngle(HIP_FL, 512);
-	setMotorAngle(HIP_BR, 512);
-	setMotorAngle(HIP_BL, 512);
-}
 
-void posOnBelly(){
-
-
-}
 
 void posStandingNeutral(){
 	feetNeutral();
 	hipNeutral();
 }
-
+*/
 
 // move leg forward
-void moveLegDirection(char leg, char direction, int angle, int speed){
+void moveLeg(char leg, char direction, int angle, int speed){
+
 
 }
 

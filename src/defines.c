@@ -1,3 +1,5 @@
+#define F_CPU 16000000UL
+
 /// Control table address
 #define P_GOAL_POSITION_L		30
 #define P_GOAL_POSITION_H		31
