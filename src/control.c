@@ -24,14 +24,14 @@ void init() {
  	OCR1A = 249; //Equals delay 1 ms
  	TIMSK1 = (1<<OCIE1A); //Enable Output Compare Match Interrupt
  	TCNT1 = 0; //reset timer/counter 1
- 	sei(); //Enables global interrupts
+ 	//sei(); //Enables global interrupts
 
 	DDRA  = 0xFC;
 	PORTA = 0xFC;
 
-	serial_initialize(57600);
+	//serial_initialize(57600);
 	dxl_initialize( 0, 1 ); // Not using device index
-	sei();	// Interrupt Enable
+	//sei();	// Interrupt Enable
 
 	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1);	// ADC Enable, Clock 1/64div.
 }
