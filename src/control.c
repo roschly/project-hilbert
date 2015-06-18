@@ -31,7 +31,7 @@ void init() {
 
 	//serial_initialize(57600);
 	dxl_initialize( 0, 1 ); // Not using device index
-	//sei();	// Interrupt Enable
+	sei();	// Interrupt Enable
 
 	ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1);	// ADC Enable, Clock 1/64div.
 }

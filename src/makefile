@@ -1,4 +1,4 @@
-SOURCES=defines.c main.c serial.c dynamixel.c dxl_hal.c zigbee.c zgb_hal.c
+SOURCES=defines.c main.c serial.c dynamixel.c dxl_hal.c
 local:
 	avr-gcc -O2 -mmcu=atmega2561 -std=gnu99 -I ../include/ -Wall ${SOURCES} -o ../dist/main.elf
 	avr-objcopy -O ihex -R .eeprom -R .fuse -R .lock -R .signature ../dist/main.elf ../dist/main.hex
