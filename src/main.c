@@ -60,9 +60,9 @@ int main(void){
 	//standingNeutral();
 	int CommStatus;
 
-	_delay_ms(2500);
+	// _delay_ms(2500);
 
-	char bla = 'n';
+	char inpChar = 'n';
 
 	while(1)
 	{
@@ -72,22 +72,11 @@ int main(void){
 		//printf("%i - %i - %i - %i - %i - %i - %i - %i \n", dxl_read_word(1,36), dxl_read_word(2,36), dxl_read_word(3,36), dxl_read_word(4,36), dxl_read_word(5,36), dxl_read_word(6,36), dxl_read_word(7,36), dxl_read_word(8,36));
 		//_delay_ms(2500);
 
-		//moveForward(timer, 0.35);
-		//rotateLeft(timer, 0.3);
-		//moveLegForward(&LF, timer, 0.3, 0.5);
-
-
-
-		/*
-		if (std_getchar() != 'w'){
-			bla = std_getchar();
+		if (serial_get_qstate() != 0) {
+			inpChar = serial_get_queue();
 		}
-		*/
 
-		bla = 'w';
-		//std_putchar(bla);
-
-		switch (bla) {
+		switch (inpChar) {
 			case 'w':
 				moveForward(timer, 0.3);
 				break;
@@ -101,29 +90,15 @@ int main(void){
 				rotateRight(timer, 0.3);
 				break;
 			case 'q':
-				turnLeft(timer, 0.3, 0.1);
+				turnLeft(timer, 0.3, 0.5);
 				break;
 			case 'e':
-				turnRight(timer, 0.3, 0.1);
+				turnRight(timer, 0.3, 0.5);
 				break;
-			case 'n':
+			default:
 				standingNeutral();
 				break;
 		};
-
-		/*
-		std_putchar(std_getchar());
-		if (std_getchar() == 'w'){
-			setAngle(LF.foot, 1.0);
-		}
-		else if(std_getchar() == 'w'){
-
-		}
-		else {
-			setAngle(LF.foot, -1.0);
-		}
-		*/
-
 	}
 
 	return 0;
@@ -149,7 +124,7 @@ void moveLegForward(struct leg *l, double timer, double speed, double phase, dou
 
 		// if front legs
 		if (l->hip == 6 || l->hip == 8){
-			setAngle(l->hip, max(0, 0.2*sin(timer+(Pi*(phase + 0.5)))) );
+			setAngle(l->hip, max(-0.3, 0.5*sin(timer+(Pi*(phase + 0.5)))) );
 		}
 		else {
 			setAngle(l->hip, max(-0.3, 0.5*sin(timer+(Pi*(phase + 0.5)))) );
