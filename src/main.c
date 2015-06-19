@@ -20,8 +20,11 @@
 
 double timer = 0.0;
 
+int isNeutral = 0;
+
 struct leg {
 	int foot, hip;
+	double lastCmdFoot, lastCmdHip;
 };
 
 struct leg LF = {
@@ -96,7 +99,9 @@ int main(void){
 				turnRight(timer, 0.3, 0.5);
 				break;
 			default:
-				standingNeutral();
+		/*		if (!isNeutral)  {
+					standingNeutral(&LF, &RF, &LB, &RB);
+				}*/
 				break;
 		};
 	}
@@ -111,24 +116,36 @@ ISR(TIMER1_COMPA_vect) {
 	timer += 0.02;
 };
 
+/*int moveLogic(double lastCmd, double footPos) {
+
+	if (lastCmd >= 0 || footPos >= 0) {
+		return max(lastCmd, footPos) - min(lastCmd, footPos);
+	}
+
+	if (lastCmd < 0 && footPos < 0) {
+		return max(abs(lastCmd), abs(footPos)) - min(abs(lastCmd), abs(footPos));
+	}
+
+	return 0;
+
+}*/
+
 
 void moveLegForward(struct leg *l, double timer, double speed, double phase, double footAngleInterval){
 	double stdTime = fmod(timer*speed, 2.0*Pi);
 	//timer = timer * speed;
 	timer = stdTime;
 
+	double footTol = 0.05;
 
+	double footPos = footAngleInterval*sin(timer+(Pi*phase));
 
-	//if ( dxl_read_byte(l->foot, 46) == 0 ){
-		setAngle(l->foot, footAngleInterval*sin(timer+(Pi*phase)));
+	// if (moveLogic(l->lastCmdFoot, footPos) >= footTol) {
+		setAngle(l->foot, footPos);
+	// }
 
-		// if front legs
-		if (l->hip == 6 || l->hip == 8){
-			setAngle(l->hip, max(-0.3, 0.5*sin(timer+(Pi*(phase + 0.5)))) );
-		}
-		else {
-			setAngle(l->hip, max(-0.3, 0.5*sin(timer+(Pi*(phase + 0.5)))) );
-		}
+	setAngle(l->hip, max(-0.3, 0.5*sin(timer+(Pi*(phase + 0.5)))) );
+
 	//}
 
 };
@@ -190,6 +207,73 @@ void rotateLeft(double timer, double speed){
 	moveLegBackward(&RF, timer, speed, 1.5, 1.0);
 	moveLegForward(&LB, timer, speed, 1.5, 1.0);
 };
+
+
+void standingNeutral(struct leg *LF, struct leg *RF, struct leg *LB, struct leg *RB){
+	// feet
+/*	setAngle(LF->foot, 0);
+	setAngle(RF->foot, 0);
+	setAngle(LB->foot, 0);
+	setAngle(RB->foot, 0);
+
+	LF->lastCmdFoot = 0;
+	RF->lastCmdFoot = 0;
+	LB->lastCmdFoot = 0;
+	RB->lastCmdFoot = 0;
+
+	// hips
+	setAngle(LF->hip, 0);
+	setAngle(RF->hip, 0);
+	setAngle(LB->hip, 0);
+	setAngle(RB->hip, 0);
+	
+	LF->lastCmdHip = 0;
+	RF->lastCmdHip = 0;
+	LB->lastCmdHip = 0;
+	RB->lastCmdHip = 0;
+*/
+	isNeutral = 1;
+}
+
+// degree: int [-100:100]
+void setAngle(int id, double degree){
+	/*
+	For hips: +/- 60 grader
+	for feet: +/ 150 grader
+	*/
+
+	if (degree > 1){
+		degree = 1;
+	}
+	if (degree < -1){
+		degree = -1;
+	}
+
+
+	double angle;
+
+	//feet
+	int maxFootAngleInterval = 165; // 150
+	if (id == 1 || id == 3 || id == 4 || id == 5){
+		angle = degree * maxFootAngleInterval;
+		if (id == 5 || id == 3){
+			angle = -angle;
+		}
+	}
+
+	// hips
+	int maxHipAngleInterval = 60;
+	if (id == 2 || id == 6 || id == 7 || id == 8){
+		angle = degree * maxHipAngleInterval;
+		if (id == 6 || id == 7){
+				angle = -angle;
+		}
+	}
+
+
+	dxl_write_word(id, 30, angle+512);
+
+}
 
 
 /*

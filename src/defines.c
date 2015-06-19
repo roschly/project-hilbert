@@ -20,5 +20,6 @@
 #define MAX_SPEED 300
 
 #define IR_LED(n,x) if(x==-1) PORTA^=(1<<(8-n)); else if(x) PORTA&=~(1<<(8-n)); else PORTA|=(1<<(8-n))
-#define max(a,b)  a > b ? a : b
+#define max(a,b)  a >= b ? a : b
+#define min(a,b)  a < b ? a : b
 #define Pi 3.14159265359
