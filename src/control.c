@@ -131,20 +131,3 @@ void moveBackward(int speed) {
 	setRightSpeed(-speed);
 	setLeftSpeed(-speed);
 }
-
-void bla() {
-
-
-	// int  k = 70;
-	// setRightSpeed((k - sl)*6);
-	// setLeftSpeed((k - sr)*6);
-}
-
-int leftDistAcceptable(){
-	if (getIR(3) > 350 || getIR(3) < 150){
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
